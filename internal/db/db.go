@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"log"
 	"os"
 	"time"
@@ -10,11 +11,15 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
-	"github.com/wuhan005/go-template/internal/dbutil"
+	"github.com/wuhan005/NekoPixel/internal/conf"
+	"github.com/wuhan005/NekoPixel/internal/dbutil"
+	"github.com/wuhan005/NekoPixel/internal/strutil"
 )
 
 var AllTables = []interface{}{
-	// TODO ...
+	&Color{},
+	&CanvasPixel{},
+	&Pixel{},
 }
 
 // Init initializes the database.
@@ -58,10 +63,68 @@ CREATE TABLE IF NOT EXISTS sessions (
 
 	SetDatabaseStore(db)
 
+	// Create trigger function.
+	if err := db.Exec(`
+CREATE OR REPLACE FUNCTION upsert_canvas_pixel()
+RETURNS TRIGGER AS $$
+DECLARE
+    colorIndex TEXT;
+BEGIN
+    SELECT index INTO colorIndex FROM colors WHERE color = NEW.color LIMIT 1;
+
+    IF colorIndex IS NOT NULL THEN
+        UPDATE canvas_pixels
+        SET color = NEW.color, index = colorIndex
+        WHERE x = NEW.x AND y = NEW.y;
+
+        IF NOT FOUND THEN
+            INSERT INTO canvas_pixels(x, y, color, index)
+            VALUES (NEW.x, NEW.y, NEW.color, colorIndex);
+        END IF;
+    ELSE
+        RAISE EXCEPTION 'Color not found in colors table.';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+`).Error; err != nil {
+		return nil, errors.Wrap(err, "create trigger function")
+	}
+
+	// Create trigger.
+	if err := db.Exec(
+		`CREATE OR REPLACE TRIGGER trigger_upsert_canvas_pixel
+AFTER INSERT ON pixels
+FOR EACH ROW
+EXECUTE FUNCTION upsert_canvas_pixel();`,
+	).Error; err != nil {
+		return nil, errors.Wrap(err, "create trigger")
+	}
+
+	// Init colors.
+	ctx := context.Background()
+	isEmpty, err := Colors.IsEmpty(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "check colors")
+	}
+	if isEmpty {
+		colors := make(map[string]string, len(conf.App.Colors))
+		for idx, color := range conf.App.Colors {
+			hash := strutil.GenerateCode(idx)
+			colors[color] = hash
+		}
+		if err := Colors.Create(ctx, CreateColorOptions{Colors: colors}); err != nil {
+			return nil, errors.Wrap(err, "create colors")
+		}
+	}
+
 	return db, nil
 }
 
 // SetDatabaseStore sets the database table store.
 func SetDatabaseStore(db *gorm.DB) {
-	// TODO ...
+	Colors = NewColorsStore(db)
+	Pixels = NewPixelStore(db)
+	Canvas = NewCanvasStore(db)
 }

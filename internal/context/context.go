@@ -7,9 +7,10 @@ import (
 
 	"github.com/charmbracelet/log"
 	"github.com/flamego/flamego"
+	"github.com/flamego/session"
 	"gorm.io/gorm"
 
-	"github.com/wuhan005/go-template/internal/dbutil"
+	"github.com/wuhan005/NekoPixel/internal/dbutil"
 )
 
 // Context represents context of a request.
@@ -62,19 +63,9 @@ func (c *Context) Status(statusCode int) {
 
 // Contexter initializes a classic context for a request.
 func Contexter(gormDB *gorm.DB) flamego.Handler {
-	return func(ctx flamego.Context) {
+	return func(ctx flamego.Context, session session.Session) {
 		c := Context{
 			Context: ctx,
-		}
-
-		// Set CORS headers.
-		c.ResponseWriter().Header().Set("Access-Control-Allow-Origin", "*")
-		c.ResponseWriter().Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		c.ResponseWriter().Header().Set("Access-Control-Allow-Headers", "*")
-		c.ResponseWriter().Header().Set("Access-Control-Expose-Headers", "*")
-		if ctx.Request().Method == http.MethodOptions {
-			ctx.ResponseWriter().WriteHeader(http.StatusOK)
-			return
 		}
 
 		c.MapTo(gormDB, (*dbutil.Transactor)(nil))
