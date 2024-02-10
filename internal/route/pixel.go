@@ -75,7 +75,7 @@ func (h *pixelHandler) SetPixels(ctx context.Context, tx dbutil.Transactor, f fo
 			return ctx.Error(http.StatusBadRequest, "颜色不在范围内")
 		}
 
-		if pixel.X < 0 || pixel.X >= uint(conf.App.MaxWidth) || pixel.Y < 0 || pixel.Y >= uint(conf.App.MaxHeight) {
+		if pixel.X >= uint(conf.App.MaxWidth) || pixel.Y >= uint(conf.App.MaxHeight) {
 			return ctx.Error(http.StatusBadRequest, fmt.Sprintf("坐标 %d,%d 超出范围", pixel.X, pixel.Y))
 		}
 	}
