@@ -68,5 +68,6 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           cd package-umd
+          npm ci
           npm publish --access public
 
