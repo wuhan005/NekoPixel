@@ -5,11 +5,11 @@ export interface pixelStatus {
 }
 
 export function getStatus() {
-    return axios.get<pixelStatus>('/api/pixels/status')
+    return axios.get<pixelStatus>('/pixels/status')
 }
 
 export function getColors() {
-    return axios.get<string[]>('/api/pixels/colors')
+    return axios.get<string[]>('/pixels/colors')
 }
 
 export interface canvasColor {
@@ -20,7 +20,7 @@ export interface canvasColor {
 }
 
 export function getPixels() {
-    return axios.get<canvasColor>('/api/pixels')
+    return axios.get<canvasColor>('/pixels')
 }
 
 export interface pixel {
@@ -34,5 +34,5 @@ export interface setPixelData {
 }
 
 export function setPixels(data: setPixelData) {
-    return axios.post('/api/pixels', data)
+    return axios.post('/pixels', data)
 }

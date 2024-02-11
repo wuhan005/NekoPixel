@@ -1,7 +1,7 @@
 <template>
-  <div class="uk-container uk-container-large uk-margin-medium-top">
+  <div class="uk-container uk-container-large">
     <div class="uk-card uk-card-default">
-      <div class="uk-card-header">
+      <div class="uk-card-header" v-if="!NEKO_BOX_MODE">
         <h3 class="uk-card-title">NekoPixel</h3>
       </div>
       <div class="uk-card-body">
@@ -45,7 +45,7 @@
               <input class="uk-range" type="range" v-model="ratio" min="1" :max="MAX_RATIO" :step="RATIO_STEP"
                      aria-label="Range">
             </div>
-            <div class="text uk-text-small">放大倍数 {{ ratio }}x</div>
+            <div class="text uk-text-small">{{ ratio }}x</div>
           </div>
         </div>
       </div>
@@ -56,6 +56,8 @@
 <script setup lang="ts">
 import {onMounted, ref, watch, nextTick} from 'vue'
 import {canvasColor, getColors, getPixels, pixel, setPixels, getStatus, pixelStatus} from './api/pixel.ts'
+
+const NEKO_BOX_MODE = import.meta.env.VITE_NEKO_BOX_MODE === 'true'
 
 const WIDTH = 1280
 const HEIGHT = 720
@@ -83,7 +85,7 @@ const isPainting = ref<boolean>(false)
 const status = ref<pixelStatus>({} as pixelStatus)
 
 const loadCanvasPixels = async () => {
-  canvasPixels.value = (await getPixels()).data.data
+  canvasPixels.value = (await getPixels()).data
 }
 
 const initBaseCanvas = () => {
@@ -144,9 +146,8 @@ const refreshCanvas = () => {
   if (!ctx) {
     return
   }
-  ["mozImageSmoothingEnabled", "webkitImageSmoothingEnabled", "msImageSmoothingEnabled", "imageSmoothingEnabled"].forEach((item) => {
-    ctx[item] = false
-  })
+
+  ctx.imageSmoothingEnabled = false
 
   ctx.save()
 
@@ -291,12 +292,12 @@ const onSelectColor = (selectedColor: string) => {
 }
 
 const getStatusInfo = async () => {
-  status.value = (await getStatus()).data.data
+  status.value = (await getStatus()).data
 }
 
 onMounted(async () => {
   getColors().then(res => {
-    colors.value = res.data.data
+    colors.value = res.data
   })
   await getStatusInfo()
 
@@ -310,7 +311,7 @@ onMounted(async () => {
 })
 </script>
 
-<style scoped lang="scss">
+<style lang="scss">
 @import "../node_modules/uikit/src/scss/mixins.scss";
 @import "../node_modules/uikit/src/scss/mixins-theme.scss";
 @import "../node_modules/uikit/src/scss/variables-theme.scss";
