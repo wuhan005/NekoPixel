@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/wuhan005/NekoPixel/issues"
   },
-  "homepage": "https://github.com/wuhan005/NekoPixel#readme"
+  "homepage": "https://github.com/wuhan005/NekoPixel#readme",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  }
 }
