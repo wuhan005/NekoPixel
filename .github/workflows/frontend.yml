@@ -18,13 +18,15 @@ jobs:
         with:
           version: 8
       - name: Install dependencies
+        working-directory: web
         run: pnpm install
       - name: Build
+        working-directory: web
         run: pnpm run build
       - name: Upload to release
         uses: actions/upload-release-asset@v1
         with:
-          asset-path: dist
+          asset-path: web/dist
           asset-name: fe-production.zip
           release-id: ${{ github.event.release.id }}
           repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -42,13 +44,15 @@ jobs:
         with:
           version: 8
       - name: Install dependencies
+        working-directory: web
         run: pnpm install
       - name: Build
+        working-directory: web
         run: pnpm run umd
       - name: Upload to release
         uses: actions/upload-release-asset@v1
         with:
-          asset-path: dist
+          asset-path: web/dist
           asset-name: fe-umd.zip
           release-id: ${{ github.event.release.id }}
           repo-token: ${{ secrets.GITHUB_TOKEN }}
