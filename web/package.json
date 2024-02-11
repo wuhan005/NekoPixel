@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@types/uikit": "^3.14.5",
-    "axios": "^1.6.5",
+    "axios": "^0.24.0",
     "uikit": "^3.17.11",
     "vue": "^3.3.11"
   },
