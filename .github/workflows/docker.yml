@@ -5,7 +5,7 @@ on:
       - master
 
 jobs:
-  build-arm:
+  build:
     runs-on: ubuntu-latest
     permissions:
       actions: write
@@ -36,7 +36,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
-          platforms: linux/arm/v7
+          platforms: linux/amd64
           push: true
           build-args: |
             GITHUB_SHA=${{ github.sha }}
