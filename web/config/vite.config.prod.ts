@@ -10,7 +10,7 @@ export default mergeConfig(
             rollupOptions: {
                 output: {
                     manualChunks: {
-                        vue: ['vue', '@vueuse/core',],
+                        vue: ['vue'],
                     },
                 },
             },
