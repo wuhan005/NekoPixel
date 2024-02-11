@@ -11,6 +11,10 @@ import (
 	"gopkg.in/ini.v1"
 )
 
+const (
+	BuildCommit = "dev"
+)
+
 // File is the configuration object.
 var File *ini.File
 
