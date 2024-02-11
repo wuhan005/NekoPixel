@@ -58,4 +58,15 @@ jobs:
           file: fe-umd.zip
           overwrite: true
           tag: ${{ github.event.release.tag_name }}
+      - name: Create folder for npm package
+        run: |
+          mkdir -p package-umd
+          cp web/dist/* package-umd
+          cp package.json package-umd
+      - name: Publish to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          cd package-umd
+          npm publish --access public
 

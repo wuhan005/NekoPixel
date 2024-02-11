@@ -8,6 +8,9 @@ export interface HttpResponse<T = unknown> {
 if (import.meta.env.VITE_API_BASE_URL) {
   axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL;
 }
+if(window.NEKO_CONFIG){
+  axios.defaults.baseURL = window.NEKO_CONFIG.pixelBaseURL;
+}
 axios.interceptors.response.use(
     async (response: AxiosResponse<HttpResponse>) => {
     return response.data
