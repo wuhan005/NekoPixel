@@ -5,7 +5,6 @@ go 1.20
 require (
 	github.com/charmbracelet/log v0.2.3
 	github.com/flamego/flamego v1.9.4
-	github.com/flamego/session v1.6.2
 	github.com/jackc/pgconn v1.14.0
 	github.com/pkg/errors v0.9.1
 	github.com/samber/lo v1.39.0
