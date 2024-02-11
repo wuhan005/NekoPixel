@@ -1,0 +1,56 @@
+name: Build frontend
+on:
+  release:
+    types:
+      - created
+      - published
+
+jobs:
+  production:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: '12'
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+      - name: Install dependencies
+        run: pnpm install
+      - name: Build
+        run: pnpm run build
+      - name: Upload to release
+        uses: actions/upload-release-asset@v1
+        with:
+          asset-path: dist
+          asset-name: fe-production.zip
+          release-id: ${{ github.event.release.id }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+  umd:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: '12'
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+      - name: Install dependencies
+        run: pnpm install
+      - name: Build
+        run: pnpm run umd
+      - name: Upload to release
+        uses: actions/upload-release-asset@v1
+        with:
+          asset-path: dist
+          asset-name: fe-umd.zip
+          release-id: ${{ github.event.release.id }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
