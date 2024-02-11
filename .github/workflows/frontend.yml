@@ -23,13 +23,14 @@ jobs:
       - name: Build
         working-directory: web
         run: pnpm run build
+      - name: Archive
+        run: zip -r fe-production.zip web/dist
       - name: Upload to release
-        uses: actions/upload-release-asset@v1
+        uses: svenstaro/upload-release-action@2.5.0
         with:
-          asset-path: web/dist
-          asset-name: fe-production.zip
-          release-id: ${{ github.event.release.id }}
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          file: fe-production.zip
+          overwrite: true
+          tag: ${{ github.event.release.tag_name }}
 
   umd:
     runs-on: ubuntu-latest
@@ -49,11 +50,12 @@ jobs:
       - name: Build
         working-directory: web
         run: pnpm run umd
+      - name: Archive
+        run: zip -r fe-umd.zip web/dist
       - name: Upload to release
-        uses: actions/upload-release-asset@v1
+        uses: svenstaro/upload-release-action@2.5.0
         with:
-          asset-path: web/dist
-          asset-name: fe-umd.zip
-          release-id: ${{ github.event.release.id }}
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          file: fe-umd.zip
+          overwrite: true
+          tag: ${{ github.event.release.tag_name }}
 
