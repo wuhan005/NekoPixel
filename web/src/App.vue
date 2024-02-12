@@ -4,7 +4,7 @@
       <div class="uk-card-header" v-if="!NEKO_BOX_MODE">
         <h3 class="uk-card-title">NekoPixel</h3>
       </div>
-      <div class="uk-card-body">
+      <div class="uk-card-body" v-if="!isMobile()">
         <div class="uk-margin">
           <div class="place-board" ref="board">
             <canvas ref="paintingCanvas" class="painting-canvas"
@@ -49,6 +49,9 @@
           </div>
         </div>
       </div>
+      <div v-else class="uk-card-body">
+        请使用电脑浏览器访问本页面，手机端暂不支持绘制。
+      </div>
     </div>
   </div>
 </template>
@@ -83,6 +86,10 @@ const canvasPixels = ref<canvasColor>()
 const isMoving = ref<boolean>(true)
 const isPainting = ref<boolean>(false)
 const status = ref<pixelStatus>({} as pixelStatus)
+
+const isMobile = () => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+}
 
 const loadCanvasPixels = async () => {
   canvasPixels.value = (await getPixels()).data
