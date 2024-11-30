@@ -234,8 +234,11 @@ const handleMouseDown = (event: MouseEvent) => {
   event.preventDefault()
 
   if (isPainting.value) {
-    const x = Math.floor(event.offsetX / ratio.value - deltaX.value)
-    const y = Math.floor(event.offsetY / ratio.value - deltaY.value)
+    // #1 If the web page is zoomed in, we need to adjust the offset.
+    const paintingCanvasRatio = paintingCanvas.value!.getBoundingClientRect().width / paintingCanvas.value!.width
+
+    const x = Math.floor(event.offsetX / ratio.value / paintingCanvasRatio - deltaX.value)
+    const y = Math.floor(event.offsetY / ratio.value / paintingCanvasRatio - deltaY.value)
     const pixel = {x, y, color: currentColor.value}
 
     if (paintedPixels.value.some(p => p.x === pixel.x && p.y === pixel.y)) {
