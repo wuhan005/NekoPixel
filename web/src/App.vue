@@ -214,12 +214,44 @@ const handleWheel = (event: WheelEvent) => {
 
   ratioChanging.value = true
 
+  // 获取鼠标在画布上的相对位置
+  const rect = paintingCanvas.value!.getBoundingClientRect()
+  const mouseX = event.clientX - rect.left
+  const mouseY = event.clientY - rect.top
+
+  // 计算鼠标在当前缩放下的画布坐标
+  const canvasMouseX = mouseX / ratio.value - deltaX.value
+  const canvasMouseY = mouseY / ratio.value - deltaY.value
+
+  // 保存旧的缩放比例
+  const oldRatio = ratio.value
+
+  // 更新缩放比例
   if (event.deltaY > 0) {
     if (ratio.value - RATIO_STEP >= 1) {
       ratio.value -= RATIO_STEP
     }
   } else if (ratio.value + RATIO_STEP <= MAX_RATIO) {
     ratio.value += RATIO_STEP
+  }
+
+  // 如果缩放比例实际发生了变化，调整偏移量
+  if (oldRatio !== ratio.value) {
+    // 计算新的鼠标位置在画布坐标系中的位置
+    const newCanvasMouseX = mouseX / ratio.value - deltaX.value
+    const newCanvasMouseY = mouseY / ratio.value - deltaY.value
+
+    // 调整偏移量，使鼠标位置在画布坐标系中保持不变
+    deltaX.value += newCanvasMouseX - canvasMouseX
+    deltaY.value += newCanvasMouseY - canvasMouseY
+
+    // 限制偏移量范围，防止画布移动到不合理的位置
+    if (deltaX.value > 0) {
+      deltaX.value = 0
+    }
+    if (deltaY.value > 0) {
+      deltaY.value = 0
+    }
   }
 
   refreshCanvas()
