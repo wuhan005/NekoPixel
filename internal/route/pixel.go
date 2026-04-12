@@ -65,7 +65,7 @@ func (h *pixelHandler) GetCanvas(ctx context.Context, tx dbutil.Transactor) erro
 }
 
 func (h *pixelHandler) SetPixels(ctx context.Context, tx dbutil.Transactor, f form.SetPixels) error {
-	userID, _ := strconv.Atoi(ctx.Request().Header.Get("neko-user-id"))
+	userID, _ := strconv.Atoi(ctx.Request().Header.Get("X-NekoBox-User-ID"))
 
 	for _, pixel := range f.Pixels {
 		color := pixel.Color
