@@ -1,15 +1,15 @@
-import axios from 'axios';
+import { httpClient } from './client'
 
 export interface pixelStatus {
     availablePixels: number
 }
 
 export function getStatus() {
-    return axios.get<pixelStatus>('/pixels/status')
+    return httpClient.get<pixelStatus>('/pixels/status')
 }
 
 export function getColors() {
-    return axios.get<string[]>('/pixels/colors')
+    return httpClient.get<string[]>('/pixels/colors')
 }
 
 export interface canvasColor {
@@ -20,7 +20,7 @@ export interface canvasColor {
 }
 
 export function getPixels() {
-    return axios.get<canvasColor>('/pixels')
+    return httpClient.get<canvasColor>('/pixels')
 }
 
 export interface pixel {
@@ -34,5 +34,5 @@ export interface setPixelData {
 }
 
 export function setPixels(data: setPixelData) {
-    return axios.post('/pixels', data)
+    return httpClient.post('/pixels', data)
 }

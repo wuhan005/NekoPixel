@@ -1,0 +1,38 @@
+{
+  "name": "@e99p1ant/neko-pixel",
+  "version": "0.0.21",
+  "description": "NekoPixel - pixel art canvas component for Vue 3",
+  "main": "neko-pixel-app.umd.js",
+  "module": "neko-pixel-app.es.js",
+  "types": "index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./neko-pixel-app.es.js",
+      "require": "./neko-pixel-app.umd.js",
+      "types": "./index.d.ts"
+    },
+    "./style.css": "./style.css"
+  },
+  "files": [
+    "neko-pixel-app.umd.js",
+    "neko-pixel-app.es.js",
+    "style.css",
+    "index.d.ts"
+  ],
+  "peerDependencies": {
+    "vue": "^3.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wuhan005/NekoPixel.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/wuhan005/NekoPixel/issues"
+  },
+  "homepage": "https://github.com/wuhan005/NekoPixel#readme",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  }
+}

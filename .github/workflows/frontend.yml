@@ -8,15 +8,13 @@ jobs:
   production:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Install Node.js
-        uses: actions/setup-node@v1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: '16'
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
+          node-version: '20'
+      - uses: pnpm/action-setup@v4
         with:
-          version: 7
+          version: 10
       - name: Install dependencies
         working-directory: web
         run: pnpm install
@@ -35,16 +33,14 @@ jobs:
   umd:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Install Node.js
-        uses: actions/setup-node@v1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          registry-url: "https://registry.npmjs.org"
-          node-version: '16'
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+      - uses: pnpm/action-setup@v4
         with:
-          version: 7
+          version: 10
       - name: Install dependencies
         working-directory: web
         run: pnpm install
@@ -59,19 +55,22 @@ jobs:
           file: fe-umd.zip
           overwrite: true
           tag: ${{ github.event.release.tag_name }}
-      - name: Create folder for npm package
-        run: |
-          mkdir -p package-umd
-          cp web/dist/* package-umd
-          cp package.json package-umd
-      - name: Publish to npm
+      - name: Publish @e99p1ant/neko-pixel-umd
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
+          mkdir -p package-umd
+          cp web/dist/neko-pixel-app.umd.js web/dist/neko-pixel-app.es.js web/dist/style.css package-umd/
+          cp package.json package-umd/
           cd package-umd
-          pwd
-          ls
-          npm install
-          npm ci
           npm publish --access public
-
+      - name: Publish @e99p1ant/neko-pixel
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          mkdir -p package-vue
+          cp web/dist/neko-pixel-app.umd.js web/dist/neko-pixel-app.es.js web/dist/style.css package-vue/
+          cp web/dist/neko-pixel-app.es.d.ts package-vue/index.d.ts
+          cp package.vue.json package-vue/package.json
+          cd package-vue
+          npm publish --access public

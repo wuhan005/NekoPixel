@@ -1,11 +1,8 @@
 {
   "name": "@e99p1ant/neko-pixel-umd",
   "version": "0.0.21",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "description": "NekoPixel - pixel art canvas (UMD bundle)",
+  "main": "neko-pixel-app.umd.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/wuhan005/NekoPixel.git"
