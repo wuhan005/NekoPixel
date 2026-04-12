@@ -19,6 +19,16 @@ export const httpClient: AxiosInstance = axios.create({
   baseURL: resolveDefaultBaseURL(),
 })
 
+let _authToken = ''
+
+httpClient.interceptors.request.use((config) => {
+  if (_authToken) {
+    config.headers = config.headers ?? {}
+    config.headers['Authorization'] = `Token ${_authToken}`
+  }
+  return config
+})
+
 httpClient.interceptors.response.use(
   async (response: AxiosResponse<HttpResponse>) => response.data,
   async (error) => Promise.reject(error)
@@ -26,4 +36,8 @@ httpClient.interceptors.response.use(
 
 export function setBaseURL(url: string) {
   httpClient.defaults.baseURL = url
+}
+
+export function setAuthToken(token: string) {
+  _authToken = token
 }

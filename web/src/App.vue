@@ -19,7 +19,7 @@
           </div>
         </div>
         <div class="toolbar">
-          <div class="color-picker">
+          <div class="color-picker" v-if="editable">
             <div class="item palette-panel">
               <div class="palette-item" v-for="(color, index) in colors" v-bind:key="index"
                    :style="`background-color: #${color}`" @click="onSelectColor(color)"></div>
@@ -39,6 +39,7 @@
               </div>
             </div>
           </div>
+          <div v-else class="color-picker-placeholder"></div>
 
           <div class="item range">
             <div class="slider">
@@ -59,6 +60,12 @@
 <script setup lang="ts">
 import {onMounted, ref, watch, nextTick} from 'vue'
 import {canvasColor, getColors, getPixels, pixel, setPixels, getStatus, pixelStatus} from './api/pixel.ts'
+
+const props = withDefaults(defineProps<{
+  editable?: boolean
+}>(), {
+  editable: false,
+})
 
 const NEKO_BOX_MODE = import.meta.env.VITE_NEKO_BOX_MODE === 'true'
 
@@ -175,6 +182,12 @@ watch(ratio, () => {
     refreshCanvas()
     ratioChanging.value = false
   })
+})
+
+watch(() => props.editable, (val) => {
+  if (!val && isPainting.value) {
+    stopPainting()
+  }
 })
 
 const startPainting = () => {
@@ -385,6 +398,10 @@ onMounted(async () => {
     align-items: center;
     flex-direction: row;
     gap: 10px;
+  }
+
+  .color-picker-placeholder {
+    flex: 4;
   }
 
   .palette-panel {

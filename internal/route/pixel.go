@@ -38,7 +38,7 @@ func (h *pixelHandler) Colors(ctx context.Context) error {
 	return ctx.Success(conf.App.Colors)
 }
 
-func (h *pixelHandler) GetCanvas(ctx context.Context, tx dbutil.Transactor) error {
+func (h *pixelHandler) GetCanvas(ctx context.Context) error {
 	colors, err := db.Colors.All(ctx.Request().Context())
 	if err != nil {
 		logrus.WithContext(ctx.Request().Context()).WithError(err).Error("Failed to get colors")
@@ -66,6 +66,9 @@ func (h *pixelHandler) GetCanvas(ctx context.Context, tx dbutil.Transactor) erro
 
 func (h *pixelHandler) SetPixels(ctx context.Context, tx dbutil.Transactor, f form.SetPixels) error {
 	userID, _ := strconv.Atoi(ctx.Request().Header.Get("X-NekoBox-User-ID"))
+	if userID == 0 {
+		return ctx.Error(http.StatusUnauthorized, "未登录，无法绘制")
+	}
 
 	for _, pixel := range f.Pixels {
 		color := pixel.Color

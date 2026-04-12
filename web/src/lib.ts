@@ -17,5 +17,6 @@ export const NekoPixelPlugin: Plugin = {
 }
 
 export { NekoPixelApp }
+export { setBaseURL, setAuthToken } from './api/client'
 export type { pixelStatus, canvasColor, pixel, setPixelData } from './api/pixel'
 export default NekoPixelPlugin

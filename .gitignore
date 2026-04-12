@@ -42,5 +42,8 @@ neko-pixel-app.es.js
 style.css
 index.d.ts
 
+# Local package staging directory for file: installs
+dist-vue/
+
 # Dev assets
 dev/*.png
