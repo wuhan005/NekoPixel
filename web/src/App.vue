@@ -14,6 +14,7 @@
                     @mousedown="handleMouseDown"
                     @mouseup="handleMouseUp"
                     @mousemove="handleMouseMove"
+                    @mouseleave="endDrag"
             >
             </canvas>
           </div>
@@ -58,7 +59,7 @@
 </template>
 
 <script setup lang="ts">
-import {onMounted, ref, watch, nextTick} from 'vue'
+import {computed, nextTick, onMounted, ref, watch} from 'vue'
 import {canvasColor, getColors, getPixels, pixel, setPixels, getStatus, pixelStatus} from './api/pixel.ts'
 
 const props = withDefaults(defineProps<{
@@ -82,17 +83,17 @@ const deltaY = ref<number>(0)
 const currentColor = ref<string>('000000')
 const paintedPixels = ref<pixel[]>([])
 
-const size = ref<{ width: number, height: number }>({
-  width: WIDTH,
-  height: HEIGHT
-})
 const ratio = ref<number>(1)
-const ratioChanging = ref<boolean>(false);
 const colors = ref<string[]>([])
 const canvasPixels = ref<canvasColor>()
+const size = computed(() => ({
+  width: canvasPixels.value?.width ?? WIDTH,
+  height: canvasPixels.value?.height ?? HEIGHT,
+}))
 const isMoving = ref<boolean>(true)
 const isPainting = ref<boolean>(false)
 const status = ref<pixelStatus>({} as pixelStatus)
+let dragStart: {x: number, y: number, deltaX: number, deltaY: number} | undefined
 
 const isMobile = () => {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
@@ -100,6 +101,7 @@ const isMobile = () => {
 
 const loadCanvasPixels = async () => {
   canvasPixels.value = (await getPixels()).data
+  await nextTick()
 }
 
 const initBaseCanvas = () => {
@@ -155,37 +157,42 @@ const initBaseCanvas = () => {
 }
 
 const refreshCanvas = () => {
-  if (!paintingCanvas.value || !baseCanvas.value || !baseContext.value) {
+  const canvas = paintingCanvas.value
+  const image = baseCanvas.value
+  if (!canvas || !image || !baseContext.value) {
     return
   }
 
-  const ctx = paintingCanvas.value.getContext('2d')
+  const ctx = canvas.getContext('2d')
   if (!ctx) {
     return
   }
 
   ctx.imageSmoothingEnabled = false
 
+  // Translations are in canvas coordinates, before applying the zoom scale.
+  const zoom = ratio.value
+  deltaX.value = Math.min(0, Math.max(deltaX.value, canvas.width / zoom - image.width))
+  deltaY.value = Math.min(0, Math.max(deltaY.value, canvas.height / zoom - image.height))
+
   ctx.save()
 
-  ctx.clearRect(0, 0, paintingCanvas.value.width, paintingCanvas.value.height)
-  ctx.scale(ratio.value, ratio.value)
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
+  ctx.scale(zoom, zoom)
   ctx.translate(deltaX.value, deltaY.value)
-  ctx.drawImage(baseCanvas.value, 0, 0)
+  ctx.drawImage(image, 0, 0)
 
   ctx.restore()
 }
 
+const endDrag = () => {
+  dragStart = undefined
+}
+
 watch(ratio, () => {
-  if (ratioChanging.value) {
-    return
-  }
-  ratioChanging.value = true
-  nextTick(() => {
-    refreshCanvas()
-    ratioChanging.value = false
-  })
-})
+  endDrag()
+  refreshCanvas()
+}, {flush: 'sync'})
 
 watch(() => props.editable, (val) => {
   if (!val && isPainting.value) {
@@ -222,71 +229,41 @@ const submit = () => {
   })
 }
 
+const getCanvasScale = (event: MouseEvent) => {
+  const canvas = event.currentTarget as HTMLCanvasElement
+  const rect = canvas.getBoundingClientRect()
+  return {x: canvas.width / rect.width, y: canvas.height / rect.height}
+}
+
 const handleWheel = (event: WheelEvent) => {
   event.preventDefault()
-  if (ratioChanging.value) {
+  const nextRatio = Math.min(MAX_RATIO, Math.max(1, ratio.value - Math.sign(event.deltaY) * RATIO_STEP))
+  if (nextRatio === ratio.value) {
     return
   }
 
-  ratioChanging.value = true
-
-  // 获取鼠标在画布上的相对位置
-  const rect = paintingCanvas.value!.getBoundingClientRect()
-  const mouseX = event.clientX - rect.left
-  const mouseY = event.clientY - rect.top
-
-  // 计算鼠标在当前缩放下的画布坐标
-  const canvasMouseX = mouseX / ratio.value - deltaX.value
-  const canvasMouseY = mouseY / ratio.value - deltaY.value
-
-  // 保存旧的缩放比例
-  const oldRatio = ratio.value
-
-  // 更新缩放比例
-  if (event.deltaY > 0) {
-    if (ratio.value - RATIO_STEP >= 1) {
-      ratio.value -= RATIO_STEP
-    }
-  } else if (ratio.value + RATIO_STEP <= MAX_RATIO) {
-    ratio.value += RATIO_STEP
-  }
-
-  // 如果缩放比例实际发生了变化，调整偏移量
-  if (oldRatio !== ratio.value) {
-    // 计算新的鼠标位置在画布坐标系中的位置
-    const newCanvasMouseX = mouseX / ratio.value - deltaX.value
-    const newCanvasMouseY = mouseY / ratio.value - deltaY.value
-
-    // 调整偏移量，使鼠标位置在画布坐标系中保持不变
-    deltaX.value += newCanvasMouseX - canvasMouseX
-    deltaY.value += newCanvasMouseY - canvasMouseY
-
-    // 限制偏移量范围，防止画布移动到不合理的位置
-    if (deltaX.value > 0) {
-      deltaX.value = 0
-    }
-    if (deltaY.value > 0) {
-      deltaY.value = 0
-    }
-  }
-
-  refreshCanvas()
-  ratioChanging.value = false
+  const scale = getCanvasScale(event)
+  const zoomShift = 1 / nextRatio - 1 / ratio.value
+  deltaX.value += event.offsetX * scale.x * zoomShift
+  deltaY.value += event.offsetY * scale.y * zoomShift
+  ratio.value = nextRatio
 }
 
 const handleMouseDown = (event: MouseEvent) => {
   if (isMoving.value) {
+    if (event.button === 0 && ratio.value > 1 && baseCanvas.value) {
+      event.preventDefault()
+      dragStart = {x: event.clientX, y: event.clientY, deltaX: deltaX.value, deltaY: deltaY.value}
+    }
     return
   }
 
   event.preventDefault()
 
   if (isPainting.value) {
-    // #1 If the web page is zoomed in, we need to adjust the offset.
-    const paintingCanvasRatio = paintingCanvas.value!.getBoundingClientRect().width / paintingCanvas.value!.width
-
-    const x = Math.floor(event.offsetX / ratio.value / paintingCanvasRatio - deltaX.value)
-    const y = Math.floor(event.offsetY / ratio.value / paintingCanvasRatio - deltaY.value)
+    const scale = getCanvasScale(event)
+    const x = Math.floor(event.offsetX * scale.x / ratio.value - deltaX.value)
+    const y = Math.floor(event.offsetY * scale.y / ratio.value - deltaY.value)
     const pixel = {x, y, color: currentColor.value}
 
     if (paintedPixels.value.some(p => p.x === pixel.x && p.y === pixel.y)) {
@@ -315,6 +292,7 @@ const handleMouseDown = (event: MouseEvent) => {
 }
 
 const handleMouseUp = (event: MouseEvent) => {
+  endDrag()
   if (isMoving.value) {
     return
   }
@@ -323,26 +301,14 @@ const handleMouseUp = (event: MouseEvent) => {
 }
 
 const handleMouseMove = (event: MouseEvent) => {
-  if (!isMoving.value) {
+  if (!isMoving.value || !dragStart || event.buttons !== 1) {
     return
   }
 
-  // Move canvas with translate.
-  if (event.buttons === 1) {
-    deltaX.value += event.movementX / ratio.value
-    deltaY.value += event.movementY / ratio.value
-
-    if (deltaX.value > 0) {
-      deltaX.value = 0
-    }
-    if (deltaY.value > 0) {
-      deltaY.value = 0
-    }
-
-    if (baseContext.value) {
-      refreshCanvas()
-    }
-  }
+  const scale = getCanvasScale(event)
+  deltaX.value = dragStart.deltaX + (event.clientX - dragStart.x) * scale.x / ratio.value
+  deltaY.value = dragStart.deltaY + (event.clientY - dragStart.y) * scale.y / ratio.value
+  refreshCanvas()
 }
 
 const onSelectColor = (selectedColor: string) => {
