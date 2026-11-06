@@ -42,8 +42,20 @@ func (db *canvas) List(ctx context.Context, fromX, fromY, toX, toY int) ([]*Canv
 }
 
 func (db *canvas) String(ctx context.Context, fromX, fromY, toX, toY int) (string, error) {
+	// Leave gaps for unpainted coordinates so sparse canvases keep their row-major positions.
+	const query = `
+WITH positioned AS (
+    SELECT (y - ?) * ? + (x - ?) AS position, index
+    FROM canvas_pixels
+    WHERE x >= ? AND y >= ? AND x < ? AND y < ?
+), spaced AS (
+    SELECT position, index, position - LAG(position, 1, -1) OVER (ORDER BY position) - 1 AS gap
+    FROM positioned
+)
+SELECT COALESCE(STRING_AGG(REPEAT(' ', gap::integer) || index, '' ORDER BY position), '')
+FROM spaced`
 	var str string
-	if err := db.WithContext(ctx).Raw(`SELECT STRING_AGG(t.index, '') FROM (SELECT index FROM "canvas_pixels" WHERE x >= ? AND y >= ? AND x <= ? AND y <= ? ORDER BY y, x) AS t`, fromX, fromY, toX, toY).Scan(&str).Error; err != nil {
+	if err := db.WithContext(ctx).Raw(query, fromY, toX-fromX, fromX, fromX, fromY, toX, toY).Scan(&str).Error; err != nil {
 		return "", err
 	}
 	return str, nil

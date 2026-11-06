@@ -142,6 +142,9 @@ const initBaseCanvas = () => {
   const uint32Array = new Uint32Array(arrayBuffer)
   for (let i = 0; i < pixels.canvas.length; i++) {
     const index = pixels.canvas[i]
+    if (index === ' ') {
+      continue
+    }
     const color = colorMap.get(index) ?? [0, 0, 0]
     const pixelValue = (255 << 24) | (color[2] << 16) | (color[1] << 8) | color[0]; // 注意: 这里使用的是big-endian
     uint32Array[i] = pixelValue;

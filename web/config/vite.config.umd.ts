@@ -8,6 +8,7 @@ export default mergeConfig(
         plugins: [
             dts({
                 include: ['src/**/*.ts', 'src/**/*.vue'],
+                aliasesExclude: ['vue'],
                 outDir: 'dist',
                 rollupTypes: true,
                 tsconfigPath: './tsconfig.json',

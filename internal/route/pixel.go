@@ -65,8 +65,8 @@ func (h *pixelHandler) GetCanvas(ctx context.Context) error {
 }
 
 func (h *pixelHandler) SetPixels(ctx context.Context, tx dbutil.Transactor, f form.SetPixels) error {
-	userID, _ := strconv.Atoi(ctx.Request().Header.Get("X-NekoBox-User-ID"))
-	if userID == 0 {
+	userID, err := strconv.Atoi(ctx.Request().Header.Get("X-NekoBox-User-ID"))
+	if err != nil || userID <= 0 {
 		return ctx.Error(http.StatusUnauthorized, "未登录，无法绘制")
 	}
 
