@@ -20,15 +20,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v7
       - name: Install Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v7
         with:
           go-version: 1.20.x
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v3
+        uses: golangci/golangci-lint-action@v9
         with:
-          version: v1.53
+          version: v2.15.0
           args: --timeout=10m
       - name: Check Go module tidiness
         shell: bash
@@ -58,12 +58,12 @@ jobs:
         ports:
           - 5432:5432
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
       - name: Install Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v7
         with:
           go-version: 1.20.x
-      - name: Checkout code
-        uses: actions/checkout@v2
       - name: Run tests
         run: go test -v -race ./...
         env:
