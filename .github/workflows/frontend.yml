@@ -80,7 +80,7 @@ jobs:
           cp package.json package-umd/
           cd package-umd
           npm version "$NPM_VERSION" --no-git-tag-version --allow-same-version
-          npm publish --access public
+          node ../.github/scripts/publish-npm.mjs
       - name: Publish @e99p1ant/neko-pixel
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -91,4 +91,4 @@ jobs:
           cp package.vue.json package-vue/package.json
           cd package-vue
           npm version "$NPM_VERSION" --no-git-tag-version --allow-same-version
-          npm publish --access public
+          node ../.github/scripts/publish-npm.mjs
