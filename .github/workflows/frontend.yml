@@ -38,6 +38,15 @@ jobs:
   umd:
     runs-on: ubuntu-latest
     steps:
+      - name: Resolve npm version from Release tag
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          if [[ ! "$RELEASE_TAG" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::The Release tag must be a semantic version, such as v0.1.0."
+            exit 1
+          fi
+          echo "NPM_VERSION=${RELEASE_TAG#v}" >> "$GITHUB_ENV"
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
@@ -70,6 +79,7 @@ jobs:
           cp web/dist/neko-pixel-app.umd.js web/dist/neko-pixel-app.es.js web/dist/style.css package-umd/
           cp package.json package-umd/
           cd package-umd
+          npm version "$NPM_VERSION" --no-git-tag-version --allow-same-version
           npm publish --access public
       - name: Publish @e99p1ant/neko-pixel
         env:
@@ -80,4 +90,5 @@ jobs:
           cp web/dist/neko-pixel-app.es.d.ts package-vue/index.d.ts
           cp package.vue.json package-vue/package.json
           cd package-vue
+          npm version "$NPM_VERSION" --no-git-tag-version --allow-same-version
           npm publish --access public
